@@ -16,8 +16,6 @@ logger.database = 'database'; // or from property of entity
 You can also use config file like this:
 ```javascript
 const logger = new Logger();
-```
-```json
 // logger.json.config
 {
     "application": "SERVER",
