@@ -1,0 +1,23 @@
+{
+  "name": "logger",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "simple logger",
+  "main": "init.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Moffaty",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moffaty/logger.git"
+  },
+  "keywords": [
+    "logger"
+  ],
+  "bugs": {
+    "url": "https://github.com/moffaty/logger/issues"
+  },
+  "homepage": "https://github.com/moffaty/logger#readme"
+}
