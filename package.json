@@ -1,8 +1,8 @@
 {
-  "name": "logger",
-  "version": "1.0.0",
+  "name": "logger-files",
+  "version": "1.2.7",
   "type": "module",
-  "description": "simple logger",
+  "description": "Logger with files structure and automatic update by days without turning off",
   "main": "init.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -14,7 +14,7 @@
     "url": "git+https://github.com/moffaty/logger.git"
   },
   "keywords": [
-    "logger"
+    "logger", "log", "console", "utils"
   ],
   "bugs": {
     "url": "https://github.com/moffaty/logger/issues"

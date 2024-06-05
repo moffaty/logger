@@ -1,29 +1,44 @@
-import { readFileSync, mkdirSync, existsSync, appendFile, rm, readdir, readFile, writeFile, writeFileSync } from 'fs';
+import { readFileSync, readFile, mkdirSync, existsSync, appendFile, rm, readdir, writeFile } from 'fs';
 import { join, basename } from 'path';
 import { ColorFormatter } from './color.js';
 import { exec } from 'child_process';
-import readline from 'readline';
 
 class Logger {
+    #logger = '';
+    #colorFormatter;
+    #logDir;
+    #database;
+    #application;
+    #loginLogFile;
+    #currentTimeFile;
+    #update;
+    #updateTime;
+    #intervalId;
+    #config;
+    #configFile;
+    #date;
     constructor(config = {}) {
-        this._configFile = config.config || 'logger.json.config';
-        if (existsSync(this._configFile)) {
-            this._config = JSON.parse(readFileSync(this._configFile));
+        this.#configFile = config.config || 'logger.json.config';
+        if (existsSync(this.#configFile)) {
+            this.#config = JSON.parse(readFileSync(this.#configFile));
         }
-        this._logDir = config.logDir || this._config.logDir || 'logs';
-        this._loginLogFile = 'auth.csv';
-        this._database = config.database || this._config.database || 'DTB';
-        this._application = config.application || this._config.application || 'APP';
-        this._logger = config.logger || this._config.logger || 'LOG';
-        this._colorFormatter = new ColorFormatter();
-        this.changeColor(this._config.color);
-        this.changeBackground(this._config.background);
-        this._currentTimeFile = '.time';
-        this._update = config.update || this._config.update || true;
-        this._updateTime = config.updateTime || this._config.updateTime || 120000;
-        this._intervalId = null;
-        this.update = this._update; // to trigger setter
-        this._initialize();
+        else {
+            this.#config = {};
+        }
+        this.#logDir = config.logDir || this.#config.logDir || 'logs';
+        this.#loginLogFile = 'auth.csv';
+        this.#database = config.database || this.#config.database || 'DTB';
+        this.#application = config.application || this.#config.application || 'APP';
+        this.#logger = config.logger || this.#config.logger || 'LOG';
+        this.#colorFormatter = new ColorFormatter();
+        this.changeColor(this.#config.color);
+        this.changeBackground(this.#config.background);
+        this.#currentTimeFile = '.time';
+        this.#update = config.update || this.#config.update || true;
+        this.#updateTime = config.updateTime || this.#config.updateTime || 120000;
+        this.#intervalId = null;
+        this.update = this.#update; // to trigger setter
+        this.#initialize();
     }
 
     /**
@@ -31,11 +46,11 @@ class Logger {
      * @param {*} colors 
      */
     changeColor(color = {}) {
-        this._colorFormatter.time = color.time;
-        this._colorFormatter.module = color.module;
-        this._colorFormatter.line = color.line;
-        this._colorFormatter.func = color.func;
-        this._colorFormatter.log = color.log;
+        this.#colorFormatter.time = color.time;
+        this.#colorFormatter.module = color.module;
+        this.#colorFormatter.line = color.line;
+        this.#colorFormatter.func = color.func;
+        this.#colorFormatter.log = color.log;
     }
 
         /**
@@ -43,120 +58,130 @@ class Logger {
      * @param {*} colors 
      */
     changeBackground(color = {}) {
-        this._colorFormatter.timeBackground = color.time;
-        this._colorFormatter.moduleBackground = color.module;
-        this._colorFormatter.lineBackground = color.line;
-        this._colorFormatter.funcBackground = color.func;
-        this._colorFormatter.logBackground = color.log;
+        this.#colorFormatter.timeBackground = color.time;
+        this.#colorFormatter.moduleBackground = color.module;
+        this.#colorFormatter.lineBackground = color.line;
+        this.#colorFormatter.funcBackground = color.func;
+        this.#colorFormatter.logBackground = color.log;
     }
 
-    async _initialize() {
-        this._createTimeFile();
-        this._createLogDir();
+    async #initialize() {
+        this.#createLogDir();
+        this.#createTimeFile();
     }
 
     get update() {
-        return this._update;
+        return this.#update;
     }
 
     set update(value) {
-        this._update = value;
+        this.#update = value;
 
-        if (this._update) {
-            if (!this._intervalId) {
-                this._intervalId = setInterval(() => this._updateTimeFile(), this._updateTime);
+        if (this.#update) {
+            if (!this.#intervalId) {
+                this.#intervalId = setInterval(() => this.#updateTimeFile(), this.#updateTime);
             }
         } 
         else {
-            if (this._intervalId) {
-                clearInterval(this._intervalId);
-                this._intervalId = null;
+            if (this.#intervalId) {
+                clearInterval(this.#intervalId);
+                this.#intervalId = null;
             }
         }
     }
 
     get updateTime() {
-        return this._updateTime;
+        return this.#updateTime;
     }
 
     set updateTime(value) {
-        this._updateTime = value;
-        if (this._update) {
-            if (this._intervalId) {
-                clearInterval(this._intervalId);
-                this._intervalId = setInterval(() => this._updateTimeFile(), this._updateTime);
+        this.#updateTime = value;
+        if (this.#update) {
+            if (this.#intervalId) {
+                clearInterval(this.#intervalId);
+                this.#intervalId = setInterval(() => this.#updateTimeFile(), this.#updateTime);
             }
         }
     }
 
     get logDir() {
-        return this._logDir;
+        return this.#logDir;
     }
 
     set logDir(value) {
-        this._logDir = value;
+        this.#logDir = value;
     }
 
     get database() {
-        return this._database;
+        return this.#database;
     }
 
     set database(value) {
-        this._database = value;
+        this.#database = value;
     }
 
     get application() {
-        return this._application;
+        return this.#application;
     }
 
     set application(value) {
-        this._application = value;
+        this.#application = value;
     }
 
     get logger() {
-        return this._logger;
+        return this.#logger;
     }
 
     set logger(value) {
-        this._logger = value;
+        this.#logger = value;
+    }
+    
+    get date() {
+        return this.#date;
     }
 
-    async _createLogDir() {
-        const contDate = this._getFormattedDate();
-        const path = join(this._logDir, contDate);
+    set date(value) {
+        this.#date = value;
+    }
+
+    async #createLogDir() {
+        const contDate = this.#getFormattedDate();
+        const path = join(this.#logDir, contDate);
         mkdirSync(path, { recursive: true }, (err) => {
             console.error(err);
         });
     }
 
-    async _createTimeFile() {
-        appendFile(join(this._logDir, this._currentTimeFile), this._getFormattedTime() + '\n', (err) => {})
+    async #createTimeFile() {
+        appendFile(join(this.#logDir, this.#currentTimeFile), this.#getFormattedTime() + '\n', (err) => {})
     }
 
-    async _updateTimeFile() {
-        const path = join(this._logDir, this._currentTimeFile);
-        const timeFile = readFileSync(path, (err) => {}).toString();
+    async #updateTimeFile() {
+        const path = join(this.#logDir, this.#currentTimeFile);
+        const timeFile = readFile(path, (err) => {}).toString();
         const lastTime = timeFile.split('\n').pop();
-        const time = this._getFormattedTime();
+        const time = this.#getFormattedTime();
+        this.#getFormattedDate();
         if (time > lastTime) {
-            await appendFile(path, this._getFormattedTime() + '\n', (err) => {});
+            await appendFile(path, this.#getFormattedTime() + '\n', (err) => {});
         }
         else {
-            await this._createLogDir();
+            await this.#createLogDir();
             await writeFile(path, '', (err) => {});
-            await this._createTimeFile();
+            await this.#createTimeFile();
         }
     }
 
-    _getFormattedDate() {
+    #getFormattedDate() {
         const today = new Date();
         const day = String(today.getDate()).padStart(2, '0');
         const month = String(today.getMonth() + 1).padStart(2, '0');
         const year = String(today.getFullYear()).slice(-2);
-        return month + day + year;
+        this.#date = month + day + year;
+        return this.#date;
     }
 
-    _getFormattedTime() {
+    #getFormattedTime() {
         const now = new Date();
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
@@ -166,157 +191,155 @@ class Logger {
     }
 
     addToLog(filename, data, output = true) {
-        const file = (this._getFile(4));
-        const func = (this._getFunction(4));
-        const timeString = this._getFormattedTime();
-        const contDate = this._getFormattedDate();
+        const file = (this.#getFile(4));
+        const func = (this.#getFunction(4));
+        const timeString = this.#getFormattedTime();
+        const contDate = this.#getFormattedDate();
         const log = `${timeString}, ${data.join(',')} \n`;
-        appendFile(join(this._logDir, contDate, filename), log, (err) => {
+        appendFile(join(this.#logDir, contDate, filename), log, (err) => {
             if (output) {
                 if (err) {
-                    return this._logLogs(file, func, `Error writing to file - ${err}`);
+                    return this.#logLogs(file, func, `Error writing to file - ${err}`);
                 }
-                this._logLogs(file, func, 'Data was successfully wrote in file');
+                this.#logLogs(file, func, 'Data was successfully wrote in file');
             }
         });
     }
 
     login(username, userData = { ip: '127.0.0.1' }) {
-        const file = (this._getFile(4));
-        const func = (this._getFunction(4));
+        const file = (this.#getFile(4));
+        const func = (this.#getFunction(4));
         const concatenatedData = Object.values(userData).join(', ');
-        const timeString = this._getFormattedTime();
-        const contDate = this._getFormattedDate();
+        const timeString = this.#getFormattedTime();
+        const contDate = this.#getFormattedDate();
         const log = `${username}, ${timeString}, ${concatenatedData} \n`;
-        appendFile(join(this._logDir, contDate, this._loginLogFile), log, (err) => {
+        appendFile(join(this.#logDir, contDate, this.#loginLogFile), log, (err) => {
             if (err) {
-                return this._logLogs(file, func, `Error writing to file - ${err}`);
+                return this.#logLogs(file, func, `Error writing to file - ${err}`);
             }
-            this._logLogs(file, func, 'data of auth logged');
+            this.#logLogs(file, func, 'data of auth logged');
         });
     }
 
-    _output(log) {
-        const cF = this._colorFormatter;
+    #output(log) {
+        const cF = this.#colorFormatter;
         const colorfulLog = `${cF.colorTime(`[${log.time.toLocaleDateString()}T${log.time.toLocaleTimeString()}]`)} ${cF.colorModule(log.where)} ${cF.colorLine(log.line)}${cF.colorFunction(log.function)}: ${cF.colorLog(log.message)}`;
         console.log(colorfulLog);
     }
 
-    _log(where, message, customFile = '', customFunc = '') {
-        const func = customFunc || this._getFunction();
-        const line = customFile || this._getFile();
+    #log(where, message, customFile = '', customFunc = '') {
+        const func = customFunc || this.#getFunction();
+        const line = customFile || this.#getFile();
         const time = new Date();
         const log = { time, where, function: func.trim() === 'at' ? '' : ` function:${func.trim()}`, line: line, message };
-        this._output(log);
+        this.#output(log);
     }
 
-    _getTrace(traceStr = 5) {
+    #getTrace(traceStr = 5) {
         const trace = new Error().stack.split('\n')[traceStr];
         return trace;
     }
 
-    _getFile(traceStr = 5) {
-        const trace = this._getTrace(traceStr);
+    #getFile(traceStr = 5) {
+        const trace = this.#getTrace(traceStr);
         const line = basename(trace.substring(trace.indexOf('(')).replace(')', ''));
         return line;
     }
 
-    _getFunction(traceStr = 5) {
-        const trace = this._getTrace(traceStr);
+    #getFunction(traceStr = 5) {
+        const trace = this.#getTrace(traceStr);
         const func = trace.substring(trace.indexOf('at') + 2, trace.indexOf('('));
         return func;
     }
 
     server(...message) {
         this.addToLog('server.csv', message, false);
-        this._log(this._application, message.join(' '));
+        this.#log(this.#application, message.join(' '));
     }
 
     database(...message) {
         this.addToLog('database.csv', message, false);
-        this._log(this._database, message.join(' '));
+        this.#log(this.#database, message.join(' '));
     }
 
-    _logLogs(file, func, ...message) {
-        this._log(this._logger, message.join(' '), file, func);
+    #logLogs(file, func, ...message) {
+        this.#log(this.#logger, message.join(' '), file, func);
     }
 
-    async clear(date = this._getFormattedDate()) {
-        const file = this._getFile(4);
-        const func = this._getFunction(4);
-        const pathToContDir = join(this._logDir, date);
-
-        const rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout
-        });
-
-        rl.question(`Are you sure you want to clear logs in ${pathToContDir}? (yes/no): `, async (answer) => {
-            if (answer.toLowerCase() === 'yes') {
-                try {
-                    await rm(pathToContDir, { recursive: true }, (err) => err ? this.error(err) : '');
-                    this._logLogs(file, func, 'Logs are cleared!');
-                } catch (err) {
-                    this._logLogs(file, func, `Error clearing logs - ${err}`);
+    async clear(date = this.#getFormattedDate(), log = '') {
+        return new Promise(async (resolve, reject) => {
+            const file = this.#getFile(4);
+            const func = this.#getFunction(4);
+            const pathToContDir = join(this.#logDir, date);
+    
+            try {
+                if (log) {
+                    await rm(join(pathToContDir, log), (err) => err ? this.error(err) : '');
+                    this.#logLogs(file, func, `${log} is cleared!`);
                 }
-            } else {
-                this._logLogs(file, func, 'Operation aborted.');
+                else {
+                    await rm(pathToContDir, { recursive: true }, (err) => err ? this.error(err) : '');
+                    this.#logLogs(file, func, 'Logs are cleared!');
+                }
+                resolve (true);
+            } catch (err) {
+                this.#logLogs(file, func, `Error clearing logs - ${err}`);
+                reject(false);
             }
-            rl.close();
-        });
+        })
     }
 
-    listLogs(date = this._getFormattedDate()) {
+    listLogs(date = this.#getFormattedDate()) {
         return new Promise((resolve, reject) => {
-            const file = (this._getFile(6));
-            const func = (this._getFunction(6));
-            const pathToContDir = join(this._logDir, date);
+            const file = (this.#getFile(6));
+            const func = (this.#getFunction(6));
+            const pathToContDir = join(this.#logDir, date);
             readdir(pathToContDir, (err, files) => {
                 if (err) {
-                    this._logLogs(file, func,`Error reading file - ${err}`);
+                    this.#logLogs(file, func,`Error reading file - ${err}`);
                     reject(err);
                 }
-                this._logLogs(file, func, `Logs/${date}: ${files.join(', ')}`);
+                this.#logLogs(file, func, `Logs/${date}: ${files.join(', ')}`);
                 resolve(files);
             });
         })
     }
 
-    tailLog(logFile, countLines = 10, date = this._getFormattedDate()) {
-        this._outputLog('tail -n ' + countLines, logFile, date);
+    tailLog(logFile, countLines = 10, date = this.#getFormattedDate()) {
+        this.#outputLog('tail -n ' + countLines, logFile, date);
     }
 
-    headLog(logFile, countLines = 10, date = this._getFormattedDate()) {
-        this._outputLog('head -n ' + countLines, logFile, date);
+    headLog(logFile, countLines = 10, date = this.#getFormattedDate()) {
+        this.#outputLog('head -n ' + countLines, logFile, date);
     }
 
-    outputLog(logFile, date = this._getFormattedDate()) {
-        this._outputLog('cat', logFile, date);
+    outputLog(logFile, date = this.#getFormattedDate()) {
+        this.#outputLog('cat', logFile, date);
     }
 
-    _outputLog(command, logFile, date = this._getFormattedDate()) {
-        const fileLogger = (this._getFile(5));
-        const func = (this._getFunction(5));
-        const pathToContDir = join(this._logDir, date);
+    #outputLog(command, logFile, date = this.#getFormattedDate()) {
+        const fileLogger = (this.#getFile(5));
+        const func = (this.#getFunction(5));
+        const pathToContDir = join(this.#logDir, date);
         exec(`${command} ${join(pathToContDir, logFile)}`,  (err, stdout, stderr) => {
             if (err) {
-                return this._logLogs(fileLogger, func,`Error reading file - ${err}`);
+                return this.#logLogs(fileLogger, func,`Error reading file - ${err}`);
             }
-            this._logLogs(fileLogger, func,`Logs/${date}:\n${stdout}`);
+            this.#logLogs(fileLogger, func,`Logs/${date}:\n${stdout}`);
         })
     }
 
     error(error) {
-        const file = (this._getFile(4));
-        const func = (this._getFunction(4));
-        const timeString = this._getFormattedTime();
-        const contDate = this._getFormattedDate();
+        const file = (this.#getFile(4));
+        const func = (this.#getFunction(4));
+        const timeString = this.#getFormattedTime();
+        const contDate = this.#getFormattedDate();
         const log = `ERROR, ${timeString}, ${error.message}, ${error.stack} \n`;
-        appendFile(join(this._logDir, contDate, 'error.csv'), log, (err) => {
+        appendFile(join(this.#logDir, contDate, 'error.csv'), log, (err) => {
             if (err) {
-                return this._logLogs(file, func, `Error writing to file - ${err}`);
+                return this.#logLogs(file, func, `Error writing to file - ${err}`);
             }
-            this._logLogs(file, func, 'Error was written in file');
+            this.#logLogs(file, func, 'Error was written in file');
         });
     }
 }
