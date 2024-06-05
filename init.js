@@ -3,20 +3,23 @@ import Logger from './logger.js';
 const logger = new Logger({ loginLogFile: 'custom_authlogs.csv' });
 
 logger.addToLog('auth.log', ['user123']);
-logger.loginLog('user123', '127.0.0.1');
-logger.serverLogs('Server started');
-logger.serverLogs('Module initialized');
-logger.dbLogs('Database connection established');
+logger.login('user123', { ip: '127.0.0.1', role: 'user' });
+logger.server('Server started');
+logger.server('Module initialized');
+logger.database('Database connection established');
 logger.listLogs();
-
+logger.headLog('auth.log', 2);
 function test() {
-    logger.serverLogs('123')
+    logger.server('123')
 }
 test();
 try {
     throw new Error('Test error');
 } catch (error) {
-    logger.errorLog(error);
+    logger.error(error);
 }
 
-// logger.clearLogs();
+setTimeout(() => {
+    logger.updateTime = 2100;
+}, 2000)
+// logger.clear();
