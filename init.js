@@ -1,5 +1,5 @@
 import Logger from './logger.js';
-// const logger = new Logger({ loginLogFile: 'custom_authlogs.csv' });
+// const logger = new Logger({ updateTime: 120 });
 // logger.addToLog('auth.log', ['user123']);
 // logger.login('user123', { ip: '127.0.0.1', role: 'user' });
 // logger.server('Server started');
@@ -21,4 +21,4 @@ import Logger from './logger.js';
 //     logger.updateTime = 2100;
 // }, 2000)
 // await logger.clear(logger.date, 'auth.csv');
-export { Logger };
+export default Logger;

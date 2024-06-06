@@ -5,12 +5,12 @@ import { exec } from 'child_process';
 
 class Logger {
     #logger = '';
+    #lastTime;
     #colorFormatter;
     #logDir;
     #database;
     #application;
     #loginLogFile;
-    #currentTimeFile;
     #update;
     #updateTime;
     #intervalId;
@@ -33,7 +33,6 @@ class Logger {
         this.#colorFormatter = new ColorFormatter();
         this.changeColor(this.#config.color);
         this.changeBackground(this.#config.background);
-        this.#currentTimeFile = '.time';
         this.#update = config.update || this.#config.update || true;
         this.#updateTime = config.updateTime || this.#config.updateTime || 120000;
         this.#intervalId = null;
@@ -67,7 +66,6 @@ class Logger {
 
     async #initialize() {
         this.#createLogDir();
-        this.#createTimeFile();
     }
 
     get update() {
@@ -144,6 +142,46 @@ class Logger {
         this.#date = value;
     }
 
+    get textColor() {
+        return this.#colorFormatter.log;
+    }
+
+    set textColor(value) {
+        this.#colorFormatter.log = value;
+    }
+
+    get funcColor() {
+        return this.#colorFormatter.func;
+    }
+
+    set funcColor(value) {
+        this.#colorFormatter.func = value;
+    }
+
+    get lineColor() {
+        return this.#colorFormatter.line;
+    }
+
+    set lineColor(value) {
+        this.#colorFormatter.line = value;
+    }
+
+    get timeColor() {
+        return this.#colorFormatter.time;
+    }
+
+    set timeColor(value) {
+        this.#colorFormatter.time = value;
+    }
+
+    get moduleColor() {
+        return this.#colorFormatter.module;
+    }
+
+    set moduleColor(value) {
+        this.#colorFormatter.module = value;
+    }
+
     async #createLogDir() {
         const contDate = this.#getFormattedDate();
         const path = join(this.#logDir, contDate);
@@ -152,23 +190,13 @@ class Logger {
         });
     }
 
-    async #createTimeFile() {
-        appendFile(join(this.#logDir, this.#currentTimeFile), this.#getFormattedTime() + '\n', (err) => {})
-    }
-
     async #updateTimeFile() {
-        const path = join(this.#logDir, this.#currentTimeFile);
-        const timeFile = readFile(path, (err) => {}).toString();
-        const lastTime = timeFile.split('\n').pop();
         const time = this.#getFormattedTime();
-        this.#getFormattedDate();
-        if (time > lastTime) {
-            await appendFile(path, this.#getFormattedTime() + '\n', (err) => {});
+        if (time > this.#lastTime) {
+            time = this.#lastTime;
         }
         else {
             await this.#createLogDir();
-            await writeFile(path, '', (err) => {});
-            await this.#createTimeFile();
         }
     }
 
