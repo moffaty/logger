@@ -1,6 +1,6 @@
 {
   "name": "logger-files",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "type": "module",
   "description": "Logger with files structure and automatic update by days without turning off",
   "main": "init.js",
