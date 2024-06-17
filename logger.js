@@ -236,7 +236,7 @@ class Logger {
         }
         else {
             this[methodName] = async (data, output = true) => {
-                await this.addToLog(filename, data, output, 4);
+                await this.addToLog(name ? name : filename, data, output, 5);
             }
         }
     }
@@ -261,9 +261,9 @@ class Logger {
         appendFile(join(this.#logDir, contDate, filename), log, (err) => {
             if (output) {
                 if (err) {
-                    return this.#customLogs(filename, file, func, `Error writing to file - ${err}`);
+                    return this.#customLogs(filename.toUpperCase(), file, func, `Error writing to file - ${err}`);
                 }
-                this.#customLogs(filename, file, func, data);
+                this.#customLogs(filename.toUpperCase(), file, func, data);
             }
         });
     }
