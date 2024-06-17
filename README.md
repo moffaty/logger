@@ -73,9 +73,12 @@ logger.login('user123', { password: '123' }); // why u doing this?
 // methods follow naming rules like regular variables (bad: 1no, 123, #asd) 
 // be carefull while using names: server, database, login
 // if you don’t follow these rules, the method won’t do anything.
-logger.custom('auth.log') // filename and data 
+logger.custom('auth.log'); // filename and data 
 // and after this u can use this file easy 
-logger.auth('123') // method = filename without extension which u use in custom log 
+logger.auth('123'); // method = filename without extension which u use in custom log 
+// and you can use this
+logger.custom('auth.log', 'test'); // set custom name for method
+logger.test('123'); // append '123' to auth.log
 ```
 
 ### UPDATE
