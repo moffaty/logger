@@ -64,6 +64,14 @@ class Logger {
         this.#colorFormatter.logBackground = color.log;
     }
 
+    start() {
+        this.update = true;
+    }
+
+    stop() {
+        this.update = false;
+    }
+
     async #initialize() {
         this.#createLogDir();
     }
@@ -218,17 +226,17 @@ class Logger {
         return timeString;
     }
 
-    async custom(filename, data = '') {
+    async custom(filename, name = '') {
         const file = (this.#getFile(4));
         const func = (this.#getFunction(4));
-        const methodName = filename.substring(0, filename.indexOf('.'));
+        const methodName = name ? name : filename.substring(0, filename.indexOf('.'));
         const regex = /^[0-9!@#$%^&*()_+-=]/;
         if (regex.test(methodName)) {
             this.#logLogs(file, func, 'Selected name (' + methodName + ') of file cannot be used for method');
         }
         else {
             this[methodName] = async (data, output = true) => {
-                this.addToLog(filename, data, output, 5);
+                await this.addToLog(filename, data, output, 4);
             }
         }
     }

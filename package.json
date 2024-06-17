@@ -1,6 +1,6 @@
 {
   "name": "logger-files",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "type": "module",
   "description": "Logger with files structure and automatic update by days without turning off",
   "main": "init.js",
@@ -25,7 +25,7 @@
     "url": "https://github.com/moffaty/logger/issues"
   },
   "homepage": "https://github.com/moffaty/logger#readme",
-  "dependencies": {
+  "devDependencies": {
     "chai": "^5.1.1",
     "mocha": "^10.4.0"
   }

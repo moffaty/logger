@@ -20,8 +20,19 @@ describe('Array', function() {
             await logger.a12uth('aaAA');
             expect(fs.statSync(join(logger.logDir, logger.date, 'a12uth.csv')));
         });
-        it('Clear all logs', async function() {
-            logger.clearAll();
+        it('Add to a12uth new method with different name', async function() {
+            try {
+                await logger.custom('a12uth.csv', 'newauth');
+                await logger.newauth('newauth');
+                expect (true);
+            }
+            catch (err) {
+                expect(false);
+            }
+        });
+        it('Stop logger', function() {
+            logger.stop();
+            expect(logger.update === false);
         })
     });
 });
