@@ -218,18 +218,44 @@ class Logger {
         return timeString;
     }
 
-    addToLog(filename, data, output = true) {
+    async custom(filename, data = '') {
         const file = (this.#getFile(4));
         const func = (this.#getFunction(4));
+        const methodName = filename.substring(0, filename.indexOf('.'));
+        const regex = /^[0-9!@#$%^&*()_+-=]/;
+        if (regex.test(methodName)) {
+            this.#logLogs(file, func, 'Selected name (' + methodName + ') of file cannot be used for method');
+        }
+        else {
+            this[methodName] = async (data, output = true) => {
+                this.addToLog(filename, data, output, 5);
+            }
+        }
+    }
+
+    async addToLog(filename, data, output = true, f = 4) {
+        const file = (this.#getFile(f));
+        const func = (this.#getFunction(f));
         const timeString = this.#getFormattedTime();
         const contDate = this.#getFormattedDate();
-        const log = `${timeString}, ${data.join(',')} \n`;
+        let log;
+        if (typeof data === 'string') {
+            // Если входные данные являются строкой, создаем строку лога
+            log = `${timeString}, ${data}\n`;
+        } else if (Array.isArray(data)) {
+            // Если входные данные являются массивом, создаем строку лога из элементов массива
+            data = data.join(',');
+            log = `${timeString}, ${data}\n`;
+        } else {
+            // Если тип данных не строка и не массив, генерируем пустую строку или выбрасываем ошибку, в зависимости от требований
+            log = '';
+        }
         appendFile(join(this.#logDir, contDate, filename), log, (err) => {
             if (output) {
                 if (err) {
-                    return this.#logLogs(file, func, `Error writing to file - ${err}`);
+                    return this.#customLogs(filename, file, func, `Error writing to file - ${err}`);
                 }
-                this.#logLogs(file, func, 'Data was successfully wrote in file');
+                this.#customLogs(filename, file, func, data);
             }
         });
     }
@@ -290,6 +316,10 @@ class Logger {
         this.#log(this.#database, message.join(' '));
     }
 
+    #customLogs(custom, file, func, ...message) {
+        this.#log(custom, message.join(' '), file, func);
+    }
+
     #logLogs(file, func, ...message) {
         this.#log(this.#logger, message.join(' '), file, func);
     }
@@ -313,6 +343,21 @@ class Logger {
             } catch (err) {
                 this.#logLogs(file, func, `Error clearing logs - ${err}`);
                 reject(false);
+            }
+        })
+    }
+
+    async clearAll() {
+        return new Promise(async (resolve, reject) => {
+            const file = this.#getFile(4);
+            const func = this.#getFunction(4);
+            try {
+                await rm(this.#logDir, { recursive: true }, (err) => err ? this.error(err) : '');
+                resolve(true);
+            }
+            catch (err) {
+                this.#logLogs(file, func, `Error clearing logs - ${err}`);
+                reject(false); 
             }
         })
     }
