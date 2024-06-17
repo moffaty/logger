@@ -1,5 +1,5 @@
 import {expect} from 'chai';
-import Logger from '../logger.js';
+import Logger from '../logger.mjs';
 import fs from 'fs';
 import { join } from 'path';
 const logger = new Logger();
