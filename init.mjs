@@ -1,4 +1,4 @@
-import Logger from './logger.js';
+import Logger from './logger.mjs';
 // const logger = new Logger({ updateTime: 120 });
 // logger.custom('asd.log');
 // logger.asd('123');

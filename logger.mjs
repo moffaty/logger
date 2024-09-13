@@ -1,6 +1,6 @@
 import { readFileSync, readFile, mkdirSync, existsSync, appendFile, rm, readdir, writeFile } from 'fs';
 import { join, basename } from 'path';
-import { ColorFormatter } from './color.js';
+import { ColorFormatter } from './color.mjs';
 import { exec } from 'child_process';
 
 class Logger {
@@ -236,7 +236,7 @@ class Logger {
         }
         else {
             this[methodName] = async (data, output = true) => {
-                await this.addToLog(name ? name : filename, data, output, 5);
+                await this.addToLog(name ? name : filename, data, output, 4);
             }
         }
     }
@@ -261,9 +261,9 @@ class Logger {
         appendFile(join(this.#logDir, contDate, filename), log, (err) => {
             if (output) {
                 if (err) {
-                    return this.#customLogs(filename.toUpperCase(), file, func, `Error writing to file - ${err}`);
+                    return this.#customLogs(filename, file, func, `Error writing to file - ${err}`);
                 }
-                this.#customLogs(filename.toUpperCase(), file, func, data);
+                this.#customLogs(filename, file, func, data);
             }
         });
     }
