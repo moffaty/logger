@@ -1,5 +1,4 @@
 import Logger from './logger.js';
-// const logger = new Logger({ updateTime: 120 });
 // logger.custom('asd.log');
 // logger.asd('123');
 // logger.login('user123', { ip: '127.0.0.1', role: 'user' });

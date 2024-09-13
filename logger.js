@@ -217,6 +217,14 @@ class Logger {
         return this.#date;
     }
 
+    getTime() {
+        return this.#getFormattedTime();
+    }
+
+    getDate() {
+        return this.#getFormattedDate();
+    }
+
     #getFormattedTime() {
         const now = new Date();
         const hours = String(now.getHours()).padStart(2, '0');
