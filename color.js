@@ -31,6 +31,7 @@ class ColorFormatter {
         this._line = this.colors.yellow;
         this._func = this.colors.green;
         this._log = this.colors.white;
+        this._error = this.colors.red;
 
         this._timeBackground = '';
         this._moduleBackground = '';

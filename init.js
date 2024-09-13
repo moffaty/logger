@@ -1,4 +1,11 @@
 import Logger from './logger.js';
+// const logger = new Logger();
+// logger.server('test');
+// logger.database('test');
+// logger.error(new Error());
+// logger.error('test');
+// logger.warn('test');
+// logger.clear();
 // logger.custom('asd.log');
 // logger.asd('123');
 // logger.login('user123', { ip: '127.0.0.1', role: 'user' });
